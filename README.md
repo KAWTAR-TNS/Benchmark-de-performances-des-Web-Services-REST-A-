@@ -5,100 +5,8 @@ Comprehensive performance benchmark comparing three REST API implementation appr
 - **Variant C**: Spring Boot + @RestController + JPA/Hibernate  
 - **Variant D**: Spring Boot + Spring Data REST
 
-## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Database Schema](#database-schema)
-- [API Endpoints](#api-endpoints)
-- [Running the Benchmarks](#running-the-benchmarks)
-- [Monitoring & Metrics](#monitoring--metrics)
-- [Test Scenarios](#test-scenarios)
-- [Query Optimization Modes](#query-optimization-modes)
-- [Results Analysis](#results-analysis)
-- [Troubleshooting](#troubleshooting)
 
-## 🎯 Project Overview
-
-This project implements a complete performance benchmarking suite to evaluate REST API stack choices based on:
-
-- **Latency**: p50/p95/p99 percentiles
-- **Throughput**: Requests per second (RPS)
-- **Error Rate**: Percentage of failed requests
-- **Resource Usage**: CPU, RAM, GC activity, thread count
-- **Abstraction Cost**: Manual controllers vs automatic exposure
-
-### Business Domain
-
-Simple e-commerce catalog with two entities:
-- **Category** (1) ↔ **Item** (N)
-
-### Test Data
-
-- **Categories**: 2,000 records
-- **Items**: 100,000 records (~50 items per category)
-- **Payloads**: 0.5-1 KB (light), 5 KB (heavy)
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       Load Testing                          │
-│                    JMeter (4 Scenarios)                     │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-    ┌──────────────┼──────────────┬──────────────────┐
-    │              │              │                  │
-    ▼              ▼              ▼                  ▼
-┌─────────┐  ┌──────────┐  ┌──────────┐      ┌──────────┐
-│Variant A│  │Variant C │  │Variant D │      │PostgreSQL│
-│ Jersey  │  │Spring MVC│  │Data REST │◄─────┤  14+     │
-│         │  │          │  │          │      │          │
-└────┬────┘  └────┬─────┘  └────┬─────┘      └──────────┘
-     │            │             │
-     │            ▼             │
-     │      ┌──────────┐        │
-     └─────►│Prometheus│◄───────┘
-            └────┬─────┘
-                 │
-                 ▼
-            ┌─────────┐
-            │ Grafana │
-            └─────────┘
-                 ▲
-                 │
-            ┌────┴─────┐
-            │ InfluxDB │
-            │ (JMeter) │
-            └──────────┘
-```
-
-## ✅ Prerequisites
-
-- **Java 17** (JDK)
-- **Maven 3.8+**
-- **Docker & Docker Compose**
-- **JMeter 5.6+** (for running load tests)
-- **Git**
-
-Minimum system requirements:
-- 4 CPU cores
-- 8 GB RAM
-- 10 GB disk space
-
-## 🚀 Quick Start
-
-### 1. Clone and Build
-
-```bash
-# Clone the repository
-cd /home/talfaza/Desktop/uni/benchMark
-
-# Build all variants
-mvn clean install -DskipTests
 ```
 
 ### 2. Start Infrastructure
@@ -115,9 +23,7 @@ docker-compose logs -f postgres
 
 The database will be automatically populated with test data via `init.sql`.
 
-### 3. Start a Variant
-
-**Option A: Using Docker (Recommended)**
+### 1. Start a Variant
 
 ```bash
 # Variant A (Jersey) - Port 8081
@@ -130,42 +36,14 @@ docker-compose --profile variant-c up -d
 docker-compose --profile variant-d up -d
 ```
 
-**Option B: Running Locally**
 
-```bash
-# Variant A
-cd variant-a-jersey
-mvn spring-boot:run
-
-# Variant C
-cd variant-c-spring-mvc
-mvn spring-boot:run
-
-# Variant D
-cd variant-d-spring-data-rest
-mvn spring-boot:run
-```
-
-### 4. Verify API is Running
-
-```bash
-# Test Categories endpoint
-curl http://localhost:8081/categories?page=0&size=5
-
-# Test Items endpoint
-curl http://localhost:8081/items?page=0&size=5
-
-# Test relationship endpoint
-curl http://localhost:8081/categories/1/items?page=0&size=5
-```
-
-### 5. Access Monitoring Dashboards
+### 2. Access Monitoring Dashboards
 
 - **Grafana**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
 - **InfluxDB**: http://localhost:8086 (admin/adminadmin)
 
-### 6. Run Load Tests
+### 3. Run Load Tests
 
 ```bash
 cd jmeter
@@ -195,39 +73,39 @@ jmeter -n -t scenarios/4-heavy-body.jmx \
   -l results/heavy-body-variant-a.jtl
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 rest-performance-benchmark/
-├── pom.xml                          # Parent POM
-├── README.md                        # This file
+├── pom.xml                         
+├── README.md                        
 ├── .gitignore
 │
 ├── database/
-│   └── init.sql                     # Database schema + test data
+│   └── init.sql                     
 │
-├── variant-a-jersey/                # JAX-RS Jersey implementation
+├── variant-a-jersey/                
 │   ├── pom.xml
 │   ├── Dockerfile
 │   └── src/main/
 │       ├── java/com/benchmark/jersey/
-│       │   ├── entity/              # JPA entities
-│       │   ├── repository/          # Data access layer
-│       │   ├── resource/            # JAX-RS resources (controllers)
-│       │   ├── config/              # Configuration
+│       │   ├── entity/             
+│       │   ├── repository/         
+│       │   ├── resource/            
+│       │   ├── config/             
 │       │   └── JerseyApplication.java
 │       └── resources/
 │           ├── META-INF/persistence.xml
 │           └── application.properties
 │
-├── variant-c-spring-mvc/            # Spring Boot @RestController
+├── variant-c-spring-mvc/            
 │   ├── pom.xml
 │   ├── Dockerfile
 │   └── src/main/
 │       ├── java/com/benchmark/springmvc/
-│       │   ├── entity/              # JPA entities
-│       │   ├── repository/          # Spring Data JPA repositories
-│       │   ├── controller/          # @RestController classes
+│       │   ├── entity/            
+│       │   ├── repository/          
+│       │   ├── controller/         
 │       │   └── SpringMvcApplication.java
 │       └── resources/
 │           └── application.yml
@@ -237,14 +115,14 @@ rest-performance-benchmark/
 │   ├── Dockerfile
 │   └── src/main/
 │       ├── java/com/benchmark/springdatarest/
-│       │   ├── entity/              # JPA entities
-│       │   ├── repository/          # @RepositoryRestResource
+│       │   ├── entity/             
+│       │   ├── repository/          
 │       │   └── SpringDataRestApplication.java
 │       └── resources/
 │           └── application.yml
 │
 ├── docker/
-│   ├── docker-compose.yml           # Complete infrastructure
+│   ├── docker-compose.yml           
 │   ├── prometheus.yml               # Prometheus scrape config
 │   ├── jmx-exporter-config.yml      # JMX metrics export
 │   └── grafana/
@@ -255,18 +133,18 @@ rest-performance-benchmark/
 │           └── jvm-dashboard.json
 │
 └── jmeter/
-    ├── scenarios/                   # Test plans (.jmx)
+    ├── scenarios/             
     │   ├── 1-read-heavy.jmx
     │   ├── 2-join-filter.jmx
     │   ├── 3-mixed-writes.jmx
     │   └── 4-heavy-body.jmx
-    ├── test-data/                   # CSV data files
+    ├── test-data/                   
     │   ├── categories.csv
     │   ├── items.csv
     │   ├── payload-1kb.json
     │   ├── payload-5kb.json
     │   └── category-payload.json
-    └── results/                     # Test results (gitignored)
+    └── results/                 
 ```
 
 ## 🗄️ Database Schema
@@ -446,7 +324,7 @@ curl http://localhost:8083/actuator/prometheus > results/metrics-variant-d.txt
 docker-compose --profile variant-d down
 ```
 
-## 📊 Monitoring & Metrics
+##  Monitoring & Metrics
 
 ### Prometheus Metrics
 
@@ -483,11 +361,10 @@ JMeter sends real-time metrics to InfluxDB:
 
 Access InfluxDB UI: http://localhost:8086
 
-## 🎯 Test Scenarios
+##  Test Scenarios
 
 ### Scenario 1: READ-Heavy (Relation Included)
 
-**Mix**:
 - 50% GET `/items?page=&size=50`
 - 20% GET `/items?categoryId=...`
 - 20% GET `/categories/{id}/items`
@@ -568,7 +445,7 @@ environment:
   QUERY_MODE: optimized  # or baseline
 ```
 
-## 📈 Results Analysis
+##  Results 
 
 ### JMeter Results
 
@@ -621,100 +498,10 @@ Fill in the provided tables (T0-T7) from the assignment document:
 | Variant | CPU (%) | Heap (MB) | GC (ms/s) | Threads |
 |---------|---------|-----------|-----------|---------|
 | A: Jersey | 45/80 | 450/750 | 5/15 | 85/120 |
-| C: @RestController | 42/75 | 480/800 | 4/12 | 90/125 |
+| C: @RestController | 42/75 | 480/800 | 4/12 | 85/125 |
 | D: Spring Data REST | 48/85 | 520/820 | 6/18 | 95/130 |
 
-## 🔧 Troubleshooting
 
-### Common Issues
-
-**1. Port Already in Use**
-
-```bash
-# Check what's using the port
-sudo lsof -i :8081
-
-# Kill the process
-kill -9 <PID>
-```
-
-**2. Database Connection Refused**
-
-```bash
-# Check PostgreSQL is running
-docker-compose ps postgres
-
-# View logs
-docker-compose logs postgres
-
-# Restart database
-docker-compose restart postgres
-```
-
-**3. Out of Memory**
-
-Increase JVM heap:
-```bash
-# Edit docker-compose.yml
-environment:
-  JAVA_OPTS: "-Xms1g -Xmx2g -XX:+UseG1GC"
-```
-
-**4. JMeter Backend Listener Errors**
-
-Verify InfluxDB is running:
-```bash
-docker-compose ps influxdb
-curl http://localhost:8086/health
-```
-
-**5. Slow Queries (N+1)**
-
-Check query mode:
-```bash
-# Verify environment variable
-docker-compose exec variant-c-spring-mvc env | grep QUERY_MODE
-
-# Should be "optimized" for best performance
-```
-
-### Viewing Logs
-
-```bash
-# Variant A logs
-docker-compose logs -f variant-a-jersey
-
-# Variant C logs
-docker-compose logs -f variant-c-spring-mvc
-
-# Variant D logs
-docker-compose logs -f variant-d-spring-data-rest
-
-# All services
-docker-compose logs -f
-```
-
-## 🎓 Best Practices
-
-### For Accurate Benchmarks
-
-1. **Isolate Tests**: Run only one variant at a time
-2. **Warm-up**: Discard first 2 minutes of each test
-3. **Stable Environment**: Close other applications
-4. **Multiple Runs**: Run each scenario 3 times, average results
-5. **Cool Down**: Wait 2-3 minutes between tests
-6. **Same Configuration**: Use identical HikariCP, JVM settings
-
-### HikariCP Configuration
-
-All variants use identical connection pool settings:
-```yaml
-minimum-idle: 10
-maximum-pool-size: 20
-idle-timeout: 300000
-connection-timeout: 20000
-max-lifetime: 1200000
-```
 
 ### JVM Configuration
 
@@ -723,39 +510,3 @@ All variants use identical JVM flags:
 -Xms512m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200
 ```
 
-## 📚 References
-
-### Technologies Used
-
-- **Java 17**: LTS version with modern features
-- **Spring Boot 3.1.5**: Latest stable release
-- **Hibernate 6.2**: JPA implementation
-- **Jersey 3.1**: JAX-RS reference implementation
-- **PostgreSQL 14**: Relational database
-- **HikariCP 5.0**: JDBC connection pool
-- **JMeter 5.6**: Load testing tool
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization
-- **InfluxDB 2.7**: Time-series database
-
-### Documentation
-
-- [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
-- [Spring Data REST Guide](https://spring.io/guides/gs/accessing-data-rest/)
-- [Jersey Documentation](https://eclipse-ee4j.github.io/jersey/)
-- [JMeter User Manual](https://jmeter.apache.org/usermanual/)
-- [Prometheus Documentation](https://prometheus.io/docs/)
-
-## 📝 License
-
-This project is created for educational purposes as part of a university performance benchmarking assignment.
-
-## 👥 Authors
-
-[Your Names Here]
-
----
-
-**Date**: November 2025  
-**Course**: [Course Name]  
-**Professor**: Pr. LACHGAR
