@@ -1,0 +1,97 @@
+{
+  "title": "JVM Performance Metrics",
+  "uid": "jvm-perf",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Heap Memory Usage",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_memory_heap_used",
+          "legendFormat": "{{job}} - Used",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_heap_max",
+          "legendFormat": "{{job}} - Max",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "GC Collection Time",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_collection_seconds_sum[1m])",
+          "legendFormat": "{{job}} - {{gc}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Thread Count",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_threads_current",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "CPU Usage",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_process_cpu_load",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    }
+  ]
+}

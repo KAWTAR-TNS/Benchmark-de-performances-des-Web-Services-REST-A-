@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Scenario 3 - MIXED (Writes on Two Entities)" enabled="true">
+      <stringProp name="TestPlan.comments">40% GET items, 20% POST items, 10% PUT items, 10% DELETE items, 10% POST cat, 10% PUT cat</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="BASE_URL" elementType="Argument">
+            <stringProp name="Argument.name">BASE_URL</stringProp>
+            <stringProp name="Argument.value">${__P(base.url,http://localhost:8081)}</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Categories CSV" enabled="true">
+        <stringProp name="filename">../test-data/categories.csv</stringProp>
+        <stringProp name="variableNames">categoryId</stringProp>
+        <boolProp name="recycle">true</boolProp>
+      </CSVDataSet>
+      <hashTree/>
+      
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Items CSV" enabled="true">
+        <stringProp name="filename">../test-data/items.csv</stringProp>
+        <stringProp name="variableNames">itemId</stringProp>
+        <boolProp name="recycle">true</boolProp>
+      </CSVDataSet>
+      <hashTree/>
+      
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Defaults" enabled="true">
+        <stringProp name="HTTPSampler.domain">${__P(target.host,localhost)}</stringProp>
+        <stringProp name="HTTPSampler.port">${__P(target.port,8081)}</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="Content-Type" elementType="Header">
+            <stringProp name="Header.name">Content-Type</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+      
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Palier 1 - 50 Threads" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">50</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">60</stringProp>
+        <stringProp name="ThreadGroup.duration">600</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        
+        <!-- 40% GET /items -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="40% GET Items" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">40.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /items" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="page" elementType="HTTPArgument">
+                  <stringProp name="Argument.name">page</stringProp>
+                  <stringProp name="Argument.value">${__Random(0,100,)}</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+                <elementProp name="size" elementType="HTTPArgument">
+                  <stringProp name="Argument.name">size</stringProp>
+                  <stringProp name="Argument.value">20</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/items</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <!-- 20% POST /items (1KB) -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="20% POST Items" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">20.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /items" enabled="true">
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{"sku":"SKU${__RandomString(8,abcdefghijklmnopqrstuvwxyz0123456789,)}","name":"Test Item ${__time(,)}","price":${__Random(10,1000,)}.${__Random(0,99,)},"stock":${__Random(0,1000,)},"category":{"id":${__Random(1,2000,)}},"description":"Test item for benchmark"}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/items</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <!-- 10% PUT /items/{id} -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="10% PUT Items" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">10.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT /items/{id}" enabled="true">
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <stringProp name="Argument.value">{"sku":"SKU${__RandomString(8,abcdefghijklmnopqrstuvwxyz0123456789,)}","name":"Updated Item ${__time(,)}","price":${__Random(10,1000,)}.${__Random(0,99,)},"stock":${__Random(0,1000,)},"category":{"id":${categoryId}}}</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/items/${__Random(1,100000,)}</stringProp>
+            <stringProp name="HTTPSampler.method">PUT</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <!-- 10% DELETE /items/{id} -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="10% DELETE Items" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">10.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="DELETE /items/{id}" enabled="true">
+            <stringProp name="HTTPSampler.path">/items/${__Random(1,100000,)}</stringProp>
+            <stringProp name="HTTPSampler.method">DELETE</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <!-- 10% POST /categories -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="10% POST Categories" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">10.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /categories" enabled="true">
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <stringProp name="Argument.value">{"code":"CAT${__RandomString(6,0123456789,)}","name":"Category ${__time(,)}"}</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/categories</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <!-- 10% PUT /categories/{id} -->
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="10% PUT Categories" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">10.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT /categories/{id}" enabled="true">
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <stringProp name="Argument.value">{"code":"CAT${__RandomString(6,0123456789,)}","name":"Updated Category ${__time(,)}"}</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/categories/${categoryId}</stringProp>
+            <stringProp name="HTTPSampler.method">PUT</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Palier 2 - 100 Threads" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">100</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">60</stringProp>
+        <stringProp name="ThreadGroup.duration">600</stringProp>
+        <stringProp name="ThreadGroup.delay">660</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree/>
+      
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="InfluxDB Backend Listener" enabled="true">
+        <elementProp name="arguments" elementType="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="influxdbUrl" elementType="Argument">
+              <stringProp name="Argument.name">influxdbUrl</stringProp>
+              <stringProp name="Argument.value">${__P(influxdb.url,http://localhost:8086/api/v2/write?org=perf&amp;bucket=jmeter)}</stringProp>
+            </elementProp>
+            <elementProp name="influxdbToken" elementType="Argument">
+              <stringProp name="Argument.name">influxdbToken</stringProp>
+              <stringProp name="Argument.value">my-super-secret-auth-token</stringProp>
+            </elementProp>
+            <elementProp name="testName" elementType="Argument">
+              <stringProp name="Argument.name">testName</stringProp>
+              <stringProp name="Argument.value">mixed-writes</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+      </BackendListener>
+      <hashTree/>
+      
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

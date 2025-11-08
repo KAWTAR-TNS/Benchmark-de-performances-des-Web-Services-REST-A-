@@ -1,0 +1,24 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    editable: true
+    jsonData:
+      version: Flux
+      organization: perf
+      defaultBucket: jmeter
+      tlsSkipVerify: true
+    secureJsonData:
+      token: my-super-secret-auth-token

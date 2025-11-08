@@ -1,0 +1,4 @@
+{
+  "code": "CAT${__RandomString(6,0123456789,)}",
+  "name": "Category ${__time(,)}"
+}

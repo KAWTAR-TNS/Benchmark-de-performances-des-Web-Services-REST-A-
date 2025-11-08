@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Scenario 2 - JOIN Filter Targeted" enabled="true">
+      <stringProp name="TestPlan.comments">70% items?categoryId, 30% items/{id}</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="BASE_URL" elementType="Argument">
+            <stringProp name="Argument.name">BASE_URL</stringProp>
+            <stringProp name="Argument.value">${__P(base.url,http://localhost:8081)}</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Categories CSV" enabled="true">
+        <stringProp name="filename">../test-data/categories.csv</stringProp>
+        <stringProp name="variableNames">categoryId</stringProp>
+        <boolProp name="recycle">true</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+      </CSVDataSet>
+      <hashTree/>
+      
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Items CSV" enabled="true">
+        <stringProp name="filename">../test-data/items.csv</stringProp>
+        <stringProp name="variableNames">itemId</stringProp>
+        <boolProp name="recycle">true</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+      </CSVDataSet>
+      <hashTree/>
+      
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Defaults" enabled="true">
+        <stringProp name="HTTPSampler.domain">${__P(target.host,localhost)}</stringProp>
+        <stringProp name="HTTPSampler.port">${__P(target.port,8081)}</stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Palier 1 - 60 Threads" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">60</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">60</stringProp>
+        <stringProp name="ThreadGroup.duration">480</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="70% GET Items by Category" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">70.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /items?categoryId=" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="categoryId" elementType="HTTPArgument">
+                  <stringProp name="Argument.name">categoryId</stringProp>
+                  <stringProp name="Argument.value">${categoryId}</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+                <elementProp name="page" elementType="HTTPArgument">
+                  <stringProp name="Argument.name">page</stringProp>
+                  <stringProp name="Argument.value">${__Random(0,10,)}</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+                <elementProp name="size" elementType="HTTPArgument">
+                  <stringProp name="Argument.name">size</stringProp>
+                  <stringProp name="Argument.value">20</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.path">/items</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+        
+        <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="30% GET Item by ID" enabled="true">
+          <stringProp name="ThroughputController.percentThroughput">30.0</stringProp>
+        </ThroughputController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /items/{id}" enabled="true">
+            <stringProp name="HTTPSampler.path">/items/${__Random(1,100000,)}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Palier 2 - 120 Threads" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">120</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">60</stringProp>
+        <stringProp name="ThreadGroup.duration">480</stringProp>
+        <stringProp name="ThreadGroup.delay">540</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree/>
+      
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="InfluxDB Backend Listener" enabled="true">
+        <elementProp name="arguments" elementType="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="influxdbUrl" elementType="Argument">
+              <stringProp name="Argument.name">influxdbUrl</stringProp>
+              <stringProp name="Argument.value">${__P(influxdb.url,http://localhost:8086/api/v2/write?org=perf&amp;bucket=jmeter)}</stringProp>
+            </elementProp>
+            <elementProp name="influxdbToken" elementType="Argument">
+              <stringProp name="Argument.name">influxdbToken</stringProp>
+              <stringProp name="Argument.value">my-super-secret-auth-token</stringProp>
+            </elementProp>
+            <elementProp name="testName" elementType="Argument">
+              <stringProp name="Argument.name">testName</stringProp>
+              <stringProp name="Argument.value">join-filter</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+      </BackendListener>
+      <hashTree/>
+      
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
