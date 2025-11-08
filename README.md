@@ -9,7 +9,7 @@ Comprehensive performance benchmark comparing three REST API implementation appr
 
 ```
 
-### 2. Start Infrastructure
+###  Start Infrastructure
 
 ```bash
 cd docker
@@ -37,13 +37,8 @@ docker-compose --profile variant-d up -d
 ```
 
 
-### 2. Access Monitoring Dashboards
 
-- **Grafana**: http://localhost:3000 (admin/admin)
-- **Prometheus**: http://localhost:9090
-- **InfluxDB**: http://localhost:8086 (admin/adminadmin)
-
-### 3. Run Load Tests
+### 2. Run Load Tests
 
 ```bash
 cd jmeter
@@ -231,7 +226,7 @@ curl -X POST http://localhost:8081/items \
   }'
 ```
 
-## 🧪 Running the Benchmarks
+##  Running the Benchmarks
 
 ### Complete Benchmark Workflow
 
